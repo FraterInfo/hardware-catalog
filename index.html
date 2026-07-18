@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hardware Stock</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- SECTION 1: THE MAIN PRODUCT GRID -->
+    <div id="grid-view">
+        <div id="product-grid" class="product-grid"></div>
+    </div>
+
+    <!-- SECTION 2: THE DETAIL VIEW (Hidden by default) -->
+    <div id="detail-view" style="display: none;">
+        <button class="back-button" onclick="showGrid()">← Retour au catalogue</button>
+        
+        <div class="detail-container">
+            <div class="detail-images">
+                <!-- Big Main Photo -->
+                <img id="detail-main-img" src="" alt="Main Image">
+                
+                <!-- PLACE 1: Extra pictures container -->
+                <div id="detail-thumbnails" class="thumbnails-container"></div>
+            </div>
+            
+            <div class="detail-info">
+                <h1 id="detail-title"></h1>
+                <div id="detail-qty" class="qty-badge" style="display:inline-block; margin: 10px 0;"></div>
+                
+                <!-- PLACE 2: Technical Specs Description text -->
+                <p id="detail-desc" class="detail-description"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DATA ARRAY: Where you change your items, descriptions, and pictures
+        const products = [
+          {
+            "name": "Acer veriton x4640g",
+            "quantity": 6,
+            "description": "I5-6éme génération, 256Go SSD, 8Go RAM, Windows 10 PRO version 21H1+activation, OFFICE 2010, PORT:VGA\\Display\\DVI\\Reseau\\USB\\DB9\\PS2, Graveur DVD",
+            "image": "image/ACER.png",
+            "gallery": ["image/ACER.png"]
+          },
+          {
+            "name": "HP Desktop + Monitor",
+            "quantity": 1,
+            "description": "I7-12éme génération, 500Go NVME, 8Go RAM, Windows 11 PRO version 21H2+activation, OFFICE 2010, PORT:VGA\\HDMI\\Reseau\\USB, Graveur DVD, Clavier, Souris, Cable alimentation, Ecran 21,5\"",
+            "image": "image/HP.png",
+            /* --- WHERE TO ADD EXTRA HP PICTURES --- */
+            "gallery": ["image/HP.png"] 
+          },
+          {
+            "name": "Acer V226HQL",
+            "quantity": 13,
+            "description": "21,5\" PORT:VGA\\DVI",
+            "image": "image/ACER2.WEBP",
+            "gallery": ["image/ACER2.WEBP"]
+          },
+          {
+            "name": "HP V24vG5",
+            "quantity": 3,
+            "description": "24\" PORT:VGA\\HDMI",
+            "image": "image/HP 24.jpg",
+            "gallery": ["image/HP 24.jpg"]
+          },
+          {
+            "name": "ThinkVision S22i-30",
+            "quantity": 2,
+            "description": "22\" PORT:VGA\\HDMI",
+            "image": "image/THINKVISION.jpg",
+            "gallery": ["image/THINKVISION.jpg"] 
+          },
+          {
+            "name": "DELL Monitor",
+            "quantity": 2,
+            "description": "21,5\" PORT:VGA\\HDMI",
+            "image": "image/DELL.jpg",
+            "gallery": ["image/DELL.jpg"]
+          },
+          {
+            "name": "DELL E2016HV",
+            "quantity": 3,
+            "description": "19,5\" PORT:VGA",
+            "image": "image/Ecran-DELL E2016HV.jpg",
+            "gallery": ["image/Ecran-DELL E2016HV.jpg"]
+          },
+          {
+            "name": "LENOVO D19-10",
+            "quantity": 3,
+            "description": "18,5\" PORT:VGA\\HDMI",
+            "image": "image/LENOVO D19-10.jpg",
+            "gallery": ["image/LENOVO D19-10.jpg"]
+          }, /* <-- FIXED: Added this comma here to connect the items! */
+          {
+            "name": "HP",
+            "quantity": 2,
+            "description": "I3-12éme génération, 256Go SSD, 8Go RAM, Windows 11 PRO version 21H2+activation, OFFICE 2010, PORT:VGA\\HDMI\\Reseau\\USB, Graveur DVD, Clavier, Souris, Cable alimentation, Ecran 21,5\"",
+            "image": "image/HP.png",
+            "gallery": ["image/HP.png"]
+          }
+        ];
+
+        // 1. Render items to the front page grid grid
+        const grid = document.getElementById('product-grid');
+        products.forEach((item, index) => {
+            grid.innerHTML += `
+                <div class="product-card" onclick="showDetails(${index})">
+                    <div class="image-wrapper">
+                        <img src="${item.image}" alt="${item.name}">
+                    </div>
+                    <p class="product-title">${item.name}</p>
+                    <div class="qty-badge">Quantité: ${item.quantity}</div>
+                </div>
+            `;
+        });
+
+        // 2. Click Logic: Hide catalog grid, build detail view strings, show details section
+        function showDetails(index) {
+            const item = products[index];
+            
+            // Set text details from the array dataset
+            document.getElementById('detail-title').innerText = item.name;
+            document.getElementById('detail-qty').innerText = "Quantité: " + item.quantity;
+            document.getElementById('detail-desc').innerText = item.description;
+            
+            // Set main image view
+            const mainImg = document.getElementById('detail-main-img');
+            mainImg.src = item.image;
+
+            // Generate extra gallery images clickable buttons
+            const thumbsContainer = document.getElementById('detail-thumbnails');
+            thumbsContainer.innerHTML = '';
+            
+            if(item.gallery && item.gallery.length > 1) {
+                item.gallery.forEach(imgUrl => {
+                    const thumb = document.createElement('img');
+                    thumb.src = imgUrl;
+                    thumb.className = 'thumb-img';
+                    thumb.onclick = () => { mainImg.src = imgUrl; };
+                    thumbsContainer.appendChild(thumb);
+                });
+            }
+
+            // View Layout View Swapping
+            document.getElementById('grid-view').style.display = 'none';
+            document.getElementById('detail-view').style.display = 'block';
+        }
+
+        // 3. Return Logic: Hide detail screen, show main grid layout view back
+        function showGrid() {
+            document.getElementById('detail-view').style.display = 'none';
+            document.getElementById('grid-view').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
