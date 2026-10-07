@@ -5,8 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hardware Stock</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Admin Controls Toolbar Styling */
+        .admin-bar {
+            text-align: center;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 20px;
+        }
+        .admin-btn {
+            padding: 8px 16px;
+            margin: 4px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-toggle { background-color: #6c757d; color: white; }
+        .btn-add { background-color: #28a745; color: white; }
+        .btn-export { background-color: #007bff; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; padding: 4px 8px; }
+        .qty-controls { margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .qty-btn { width: 28px; height: 28px; border: 1px solid #ccc; background: #fff; font-weight: bold; cursor: pointer; border-radius: 4px; }
+    </style>
 </head>
 <body>
+
+    <!-- ADMIN TOOLBAR -->
+    <div class="admin-bar">
+        <button id="toggle-edit-btn" class="admin-btn btn-toggle" onclick="toggleEditMode()">⚙️ Mode Édition</button>
+        <span id="edit-controls" style="display: none;">
+            <button class="admin-btn btn-add" onclick="addNewItem()">➕ Ajouter un produit</button>
+            <button class="admin-btn btn-export" onclick="exportCatalog()">📥 Exporter le code JSON</button>
+        </span>
+    </div>
 
     <!-- SECTION 1: THE MAIN PRODUCT GRID -->
     <div id="grid-view">
@@ -154,19 +187,92 @@
           },
         ];
 
-        // 1. Render items to the front page grid grid
-        const grid = document.getElementById('product-grid');
-        products.forEach((item, index) => {
-            grid.innerHTML += `
-                <div class="product-card" onclick="showDetails(${index})">
-                    <div class="image-wrapper">
-                        <img src="${item.image}" alt="${item.name}">
+        let isEditMode = false;
+
+        // 1. Render items to the front page grid
+        function renderProducts() {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = '';
+            
+            products.forEach((item, index) => {
+                grid.innerHTML += `
+                    <div class="product-card" onclick="handleCardClick(event, ${index})">
+                        <div class="image-wrapper">
+                            <img src="${item.image}" alt="${item.name}">
+                        </div>
+                        <p class="product-title">${item.name}</p>
+                        <div class="qty-badge">Quantité: ${item.quantity}</div>
+                        
+                        ${isEditMode ? `
+                            <div class="qty-controls" onclick="event.stopPropagation()">
+                                <button class="qty-btn" onclick="adjustQty(${index}, 1)">+</button>
+                                <button class="qty-btn" onclick="adjustQty(${index}, -1)">-</button>
+                                <button class="btn-danger" onclick="deleteItem(${index})">🗑️ Supprimer</button>
+                            </div>
+                        ` : ''}
                     </div>
-                    <p class="product-title">${item.name}</p>
-                    <div class="qty-badge">Quantité: ${item.quantity}</div>
-                </div>
-            `;
-        });
+                `;
+            });
+        }
+
+        function handleCardClick(event, index) {
+            if (!isEditMode) {
+                showDetails(index);
+            }
+        }
+
+        // Toggle Edit Mode UI
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            document.getElementById('edit-controls').style.display = isEditMode ? 'inline' : 'none';
+            document.getElementById('toggle-edit-btn').innerText = isEditMode ? '🔒 Quitter Mode Édition' : '⚙️ Mode Édition';
+            renderProducts();
+        }
+
+        // Increase / Decrease Quantity
+        function adjustQty(index, amount) {
+            if (products[index].quantity + amount >= 0) {
+                products[index].quantity += amount;
+                renderProducts();
+            }
+        }
+
+        // Delete Item
+        function deleteItem(index) {
+            if (confirm(`Voulez-vous vraiment supprimer "${products[index].name}" ?`)) {
+                products.splice(index, 1);
+                renderProducts();
+            }
+        }
+
+        // Add New Item
+        function addNewItem() {
+            const name = prompt("Nom du produit:");
+            if (!name) return;
+            const quantity = parseInt(prompt("Quantité initial:", "1")) || 0;
+            const description = prompt("Description technique:", "");
+            const imagePath = prompt("Chemin de l'image (ex: image/nom.jpg):", "image/");
+
+            products.push({
+                "name": name,
+                "quantity": quantity,
+                "description": description,
+                "image": imagePath,
+                "gallery": [imagePath]
+            });
+
+            renderProducts();
+        }
+
+        // Export Array Data to Clipboard
+        function exportCatalog() {
+            const jsonText = JSON.stringify(products, null, 12);
+            navigator.clipboard.writeText(`const products = ${jsonText};`);
+            alert("Le code 'products' à jour a été copié dans le presse-papier ! Vous pouvez le coller directement dans VS Code.");
+        }
+
+        // Initial Page Render
+        renderProducts();
 
         // 2. Click Logic: Hide catalog grid, build detail view strings, show details section
         function showDetails(index) {
